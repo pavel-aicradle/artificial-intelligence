@@ -60,7 +60,7 @@ class CustomPlayer(DataPlayer):
 			for depth in count(1):
 				pre_nodes = self.context['c_nodes']
 
-				self.queue.put(self.alpha_beta_search(state, depth, self.moves_diff_heuristic))
+				self.queue.put(self.alpha_beta_search(state, depth, self.deeper_heuristic))
 
 				self.context['c_layers'] += depth
 				if self.context['c_nodes'] - pre_nodes == depth: return #finish early, because we ran out of nodes
@@ -140,14 +140,42 @@ class CustomPlayer(DataPlayer):
 		x1, y1 = (ind1 % (11 + 2), ind1 // (11 + 2))
 		ind2 = state.locs[1-self.player_id]
 		x2, y2 = (ind2 % (11 + 2), ind2 // (11 + 2))
-		print(x1, y1)
-		print(DebugState.ind2xy(ind1))
-		for s in state.liberties(ind1):
-			print(DebugState.ind2xy(s))
+		# print("hello", x1, y1)
+		# print("friend", DebugState.ind2xy(ind1))
+		#for s in state.liberties(ind1):
+		#	print(DebugState.ind2xy(s))
 
-		print(x2, y2)
-		print(DebugState.ind2xy(ind2))
-		for s in state.liberties(ind2):
-			print(DebugState.ind2xy(s))
-		
-		return -(x1-x2)**2 - (y1-y2)**2 - len(state.liberties(ind2))
+		#print("other", x2, y2)
+		#print("what", DebugState.ind2xy(ind2))
+		#for s in state.liberties(ind2):
+		#	print(DebugState.ind2xy(s))
+
+		# Minimize Euler distance, so negative if far from opponent
+		return -(x1-x2)**2 - (y1-y2)**2
+
+	def avoid_opponent_heuristic(self, state):
+		return -self.chase_opponent_heuristic(state)
+
+	def center_heuristic(self, state):
+		ind1 = state.locs[self.player_id]
+		x1, y1 = (ind1 % (11 + 2), ind1 // (11 + 2))
+		ind2 = state.locs[1-self.player_id]
+		x2, y2 = (ind2 % (11 + 2), ind2 // (11 + 2))
+
+		# (5, 4) is the center of the board. Try to stay there.
+		# If opponent is off to the edge, that's better too.
+		return -(x1-5)**2 - (y1-4)**2 + (x2-5)**2 + (y2-4)**2
+
+	def multi_heuristic(self, state):
+		return self.moves_diff_heuristic(state) + \
+			0.5*self.center_heuristic(state)
+
+	# sum up the liberties and the liberties of liberties
+	def deeper_heuristic(self, state):
+		val = 0
+		for liberty in state.liberties(state.locs[self.player_id]):
+			val += 1 + len(state.liberties(liberty))
+		for liberty in state.liberties(state.locs[1-self.player_id]):
+			val -= 1 + len(state.liberties(liberty))
+		return val
+	
