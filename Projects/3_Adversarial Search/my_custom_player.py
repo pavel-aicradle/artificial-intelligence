@@ -52,18 +52,18 @@ class CustomPlayer(DataPlayer):
 		# recent action. So: Iterative deepening can be accomplished here without doing anything but calling put() over
 		# and over with better answers. Too-deep depths just won't get tried, because this function will be forced to
 		# stop execution when the time runs out. Mystery solved.
-		if self.context is None: self.context = {'c_nodes': 0, 'c_layers': 0}
+		if self.context is None: self.context = {'n_nodes': 0, 'n_layers': 0}
 
 		if state.ply_count < 2:
 			self.queue.put(random.choice(state.actions()))
 		else:
 			for depth in count(1):
-				pre_nodes = self.context['c_nodes']
+				pre_nodes = self.context['n_nodes']
 
 				self.queue.put(self.alpha_beta_search(state, depth, self.deeper_heuristic))
 
-				self.context['c_layers'] += depth
-				if self.context['c_nodes'] - pre_nodes == depth: return #finish early, because we ran out of nodes
+				self.context['n_layers'] += depth
+				if self.context['n_nodes'] - pre_nodes == depth: return #finish early, because we ran out of nodes
 				
 
 	# Straight outta the lecture coding example
@@ -82,7 +82,7 @@ class CustomPlayer(DataPlayer):
 			otherwise return the minimum value over all legal childz
 			nodes.
 			"""
-			self.context['c_nodes'] += 1
+			self.context['n_nodes'] += 1
 
 			if state.terminal_test():
 				return state.utility(self.player_id)
@@ -101,7 +101,7 @@ class CustomPlayer(DataPlayer):
 			otherwise return the maximum value over all legal child
 			nodes.
 			"""
-			self.context['c_nodes'] += 1
+			self.context['n_nodes'] += 1
 
 			if state.terminal_test():
 				return state.utility(self.player_id)
@@ -116,11 +116,11 @@ class CustomPlayer(DataPlayer):
 			return v
 
 		# kick it off
-		self.context['c_nodes'] += 1
+		self.context['n_nodes'] += 1
 		alpha = float("-inf")
 		beta = float("inf")
 		best_score = float("-inf")
-		best_move = None
+		best_move = state.actions()[0]
 		for a in state.actions():
 			v = min_value(state.result(a), depth-1, alpha, beta)
 			alpha = max(alpha, v) # this line disallows calling with just max(key=lambda)

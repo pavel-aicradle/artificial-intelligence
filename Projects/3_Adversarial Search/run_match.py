@@ -99,9 +99,9 @@ def play_matches(custom_agent, test_agent, cli_args):
 		_matches = make_fair_matches(matches, results)
 		results.extend(_run_matches(_matches, custom_agent.name, cli_args.processes))
 
-	print("total number of nodes expanded by {}s:".format(custom_agent.name), sum(r[3][0].context['c_nodes'] for r in results))
+	print("total number of nodes expanded by {}s:".format(custom_agent.name), sum(r[3][0].context['n_nodes'] for r in results))
 	print("total number of nodes expanded by {}s:".format(test_agent.name), sum(r[3][1].context['n_nodes'] for r in results))
-	print("total number of layers reached by {}s:".format(custom_agent.name), sum(r[3][0].context['c_layers'] for r in results))	
+	print("total number of layers reached by {}s:".format(custom_agent.name), sum(r[3][0].context['n_layers'] for r in results))	
 	print("total number of layers reached by {}s:".format(test_agent.name), sum(r[3][1].context['n_layers'] for r in results))
 	wins = sum(int(r[0].name == custom_agent.name) for r in results)
 	return wins, len(matches) * (1 + int(cli_args.fair_matches))
